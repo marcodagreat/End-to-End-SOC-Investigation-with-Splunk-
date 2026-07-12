@@ -323,3 +323,253 @@ The connection was denied because the user account is not authorized for remote 
 Therefore, Hydra reporting a valid password was not treated as proof that a usable Windows desktop session had been established
 
 ---
+
+# MITRE ATT&CK Mapping
+
+ | Technique | Name                      | Evidence                                                  |
+| --------- | ------------------------- | --------------------------------------------------------- |
+| `T1046`   | Network Service Discovery | Reconnaissance and network-connection telemetry           |
+| `T1110`   | Brute Force               | Repeated Windows Event ID `4625`                          |
+| `T1078`   | Valid Accounts            | Valid credentials identified and Event ID `4624` reviewed |
+
+---
+
+# MITRE ATT&CK Validation SPL
+
+| makeresults
+| eval Technique="T1046", Name="Network Service Discovery", Status="Validated", Telemetry="Sysmon Event ID 3"
+| append [
+    | makeresults
+    | eval Technique="T1110", Name="Brute Force", Status="Validated", Telemetry="Windows Event ID 4625"
+]
+| append [
+    | makeresults
+    | eval Technique="T1078", Name="Valid Accounts", Status="Validated", Telemetry="Windows Event ID 4624"
+]
+| table Technique Name Status Telemetry
+
+---
+
+# Triage Process
+
+## The investigation focused on the following questions:
+
+- What activity triggered the investigation?
+- Which endpoint was targeted?
+- Which account received repeated authentication attempts?
+- Which system generated the attack activity?
+- How many failed attempts occurred?
+- Did a successful authentication event occur afterward?
+- Was the same source IP associated with the failures and success?
+- Was the activity authorized?
+- Was an interactive RDP desktop actually established?
+- Which MITRE ATT&CK techniques matched the behavior?
+- What immediate containment actions were required?
+
+---
+
+# Investigation Findings
+
+| Field                            | Finding                  |
+| -------------------------------- | ------------------------ |
+| Source IP                        | `10.30.30.6`             |
+| Source system                    | Kali Linux               |
+| Target host                      | `Target-PC`              |
+| Target IP                        | `10.20.20.15`            |
+| Target account                   | `rsmith`                 |
+| Attack method                    | RDP brute force          |
+| RDP port                         | TCP `3389`               |
+| Failed authentication telemetry  | Event ID `4625`          |
+| Successful-authentication review | Event ID `4624`          |
+| Reconnaissance telemetry         | Sysmon network events    |
+| Final interactive RDP result     | Denied after remediation |
+| Incident status                  | Contained and validated  |
+
+---
+
+Containment Actions
+Credential Containment
+
+The affected account password was reset through Active Directory Users and Computers.
+
+This action invalidated the credential discovered during the attack simulation.
+
+Identity Restriction
+
+The affected test account was restricted from remote logon access.
+
+The following policy location was used:
+
+Computer Configuration
+└── Policies
+    └── Windows Settings
+        └── Security Settings
+            └── Local Policies
+                └── User Rights Assignment
+
+
+---
+
+# Allow Log On Through Remote Desktop Services
+
+The policy was restricted to:
+- Administrators
+  
+---
+
+# Deny Log On Through Remote Desktop Services
+
+### The affected test account was added:
+
+MYVRHOMELAB\rsmith
+
+---
+
+# Group Policy Deployment
+
+### The policy was forced onto the endpoint using:
+
+gpupdate /force
+
+The applied policy was verified using:
+
+gpresult /r /scope computer
+
+The results confirmed that the Remote Desktop policy was applied to Target-PC.
+
+---
+
+# Remediation and Hardening
+### Account Lockout Policy
+
+The following Active Directory account lockout policy was configured:
+
+| Setting                       | Value                    |
+| ----------------------------- | ------------------------ |
+| Account lockout threshold     | 5 invalid logon attempts |
+| Account lockout duration      | 15 minutes               |
+| Reset account lockout counter | 15 minutes               |
+
+This reduced the number of password guesses an attacker could make against a domain account.
+
+# Password Reset
+
+The password for the affected account was reset in Active Directory.
+
+The reset invalidated the password discovered during the Hydra simulation.
+
+# RDP Hardening
+
+The following RDP controls were implemented:
+
+- Restricted Remote Desktop logon rights
+- Limited allowed RDP access to administrators
+- Explicitly denied the affected user remote logon rights
+- Applied the policy to the target workstation
+- Verified policy application using gpresult
+- Confirmed that manual Remote Desktop access was denied
+- Prepared firewall-based containment for TCP port 3389
+
+---
+
+Windows Defender Firewall Rule
+
+An inbound firewall rule was prepared with the following settings:
+Protocol: TCP
+Local Port: 3389
+Action: Block
+
+---
+
+This provides a network-level control when Remote Desktop is not required.
+
+# MikroTik Network Containment
+
+The following MikroTik rule can be used to block the Kali system from reaching RDP on Target-PC:
+
+/ip firewall filter
+add chain=forward \
+    src-address=10.30.30.6 \
+    dst-address=10.20.20.15 \
+    protocol=tcp \
+    dst-port=3389 \
+    action=drop \
+    comment="Containment - Block Kali RDP to Target-PC"
+The rule should be placed above any broader rule that permits the same traffic.
+
+---
+
+# Validation Results
+
+| Validation Test                              | Result |
+| -------------------------------------------- | ------ |
+| Windows Security logs ingested into Splunk   | Passed |
+| Sysmon telemetry ingested into Splunk        | Passed |
+| Reconnaissance visible in Splunk             | Passed |
+| Failed RDP logons visible as Event ID `4625` | Passed |
+| Source IP identified                         | Passed |
+| Target account identified                    | Passed |
+| Target endpoint identified                   | Passed |
+| MITRE ATT&CK mapping completed               | Passed |
+| Password reset completed                     | Passed |
+| Account lockout policy configured            | Passed |
+| RDP restriction GPO applied                  | Passed |
+| Unauthorized interactive RDP login denied    | Passed |
+| Splunk monitoring remained active            | Passed |
+| Incident response documentation completed    | Passed |
+
+
+---
+
+# Incident Response Summary
+### Incident Type
+
+Active Directory RDP brute-force simulation
+
+### Severity
+
+High
+
+### Affected Asset
+
+Target-PC.myvrhomelab.local
+
+### Affected Account
+
+MYVRHOMELAB\rsmith
+
+### Source
+
+Kali Linux at 10.30.30.6
+
+### Initial Access Method
+
+RDP authentication attempts over TCP 3389
+
+# Detection Sources
+- Splunk Enterprise
+- Windows Security logs
+- Sysmon
+- Splunk Universal Forwarder
+- Hydra test output
+# Containment
+- Reset affected account password
+- Restricted RDP logon rights
+- Denied the affected account remote logon authorization
+- Applied Group Policy to the endpoint
+- Prepared Windows Firewall RDP blocking
+- Continued Splunk monitoring
+# Remediation
+- Configured account lockout policy
+- Restricted RDP access
+- Verified Group Policy application
+- Validated unauthorized RDP access denial
+- Documented the incident
+
+# Recovery Status
+
+Contained and validated.
+
+No unauthorized interactive RDP access was possible after the remediation controls were applied.
+
+---
