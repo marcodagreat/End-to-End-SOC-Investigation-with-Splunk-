@@ -1,2 +1,325 @@
-# End-to-End-SOC-Investigation-with-Splunk-
-Enterprise-style SIEM lab featuring Splunk, Sysmon, centralized logging, Active Directory, and endpoint telemetry validation.
+# End-to-End SOC Investigation with Splunk
+
+## Active Directory Reconnaissance, RDP Brute-Force Detection, Triage, Containment, Remediation, and Incident Response
+
+This project documents an end-to-end SOC investigation performed in an authorized and isolated cybersecurity homelab.
+
+The goal was to move beyond basic log collection and dashboard creation by demonstrating the complete incident-handling lifecycle:
+
+> **Attack Simulation → Detection → Triage → Containment → Remediation → Validation → Incident Reporting**
+
+The lab focused on detecting reconnaissance activity and a simulated RDP brute-force attack against a domain-joined Windows 11 endpoint. Splunk Enterprise was used to centralize Windows Security and Sysmon telemetry, correlate attacker behavior, identify affected systems and accounts, map activity to MITRE ATT&CK, support analyst triage, and validate the effectiveness of Active Directory and Group Policy remediation controls.
+
+> **Disclaimer:** All attack activity documented in this repository was performed only against systems that I own and control inside a private cybersecurity homelab. The project was created for defensive security education, detection validation, and incident-response practice.
+
+---
+
+# Table of Contents
+
+1. [Project Objectives](#project-objectives)
+2. [Lab Environment](#lab-environment)
+3. [Network and System Details](#network-and-system-details)
+4. [Attack Scenario](#attack-scenario)
+5. [SOC Investigation Workflow](#soc-investigation-workflow)
+6. [Data Sources](#data-sources)
+7. [Important Windows Event IDs](#important-windows-event-ids)
+8. [Splunk Dashboard Capabilities](#splunk-dashboard-capabilities)
+9. [Detection Logic](#detection-logic)
+10. [MITRE ATT&CK Mapping](#mitre-attck-mapping)
+11. [Triage Process](#triage-process)
+12. [Investigation Findings](#investigation-findings)
+13. [Containment Actions](#containment-actions)
+14. [Remediation and Hardening](#remediation-and-hardening)
+15. [Validation Results](#validation-results)
+16. [Incident Response Summary](#incident-response-summary)
+17. [Screenshots and Evidence](#screenshots-and-evidence)
+18. [Repository Structure](#repository-structure)
+19. [Skills Demonstrated](#skills-demonstrated)
+20. [Lessons Learned](#lessons-learned)
+21. [Future Enhancements](#future-enhancements)
+
+---
+
+# Project Objectives
+
+The main objectives of this project were to:
+
+- Centralize Windows Security and Sysmon telemetry in Splunk Enterprise
+- Detect network reconnaissance originating from Kali Linux
+- Detect repeated RDP authentication failures
+- Identify the attacking source IP
+- Identify the targeted endpoint
+- Identify the affected domain account
+- Review successful authentication events following repeated failures
+- Distinguish authentication success from authorization success
+- Map attacker behavior to MITRE ATT&CK
+- Build a centralized SOC threat-detection dashboard
+- Perform identity-based containment in Active Directory
+- Restrict unauthorized RDP access using Group Policy
+- Configure an Active Directory account lockout policy
+- Reset compromised credentials
+- Validate that unauthorized interactive RDP access was denied
+- Create a reusable SOC investigation playbook
+- Produce a formal incident response report
+
+---
+
+# Lab Environment
+
+| Component | Purpose |
+|---|---|
+| Kali Linux | Authorized attack-simulation host |
+| Windows 11 `Target-PC` | Domain-joined endpoint and RDP target |
+| Windows Server `ADDC01` | Active Directory Domain Services, DNS, and Group Policy |
+| Splunk Enterprise | SIEM, dashboarding, searching, correlation, and investigation |
+| Splunk Universal Forwarder | Forwarded Windows logs into Splunk |
+| Sysmon | Provided endpoint network and process telemetry |
+| MikroTik CHR | Routing, VLAN segmentation, and optional network containment |
+| Cisco Catalyst switch | VLAN segmentation between lab systems |
+| VirtualBox | Virtualization platform hosting the lab systems |
+
+---
+
+# Network and System Details
+
+| Asset | Address or Identifier |
+|---|---|
+| Kali Linux attack host | `10.30.30.6` |
+| Active Directory server | `10.20.20.10` |
+| Windows 11 target endpoint | `10.20.20.15` |
+| Splunk Enterprise server | `10.40.40.30:8000` |
+| Active Directory domain | `myvrhomelab.local` |
+| Domain controller | `ADDC01.myvrhomelab.local` |
+| Target endpoint | `Target-PC.myvrhomelab.local` |
+| Targeted test account | `rsmith` |
+| Attack protocol | RDP |
+| RDP port | TCP `3389` |
+
+---
+
+# Attack Scenario
+
+The simulated incident followed this sequence:
+
+1. Kali Linux performed reconnaissance against Windows systems in the lab.
+2. Sysmon and Windows logs were forwarded into Splunk.
+3. Splunk displayed reconnaissance-related network activity.
+4. Hydra generated repeated RDP authentication attempts against `Target-PC`.
+5. Windows Security Event ID `4625` recorded the failed logons.
+6. Hydra eventually identified a valid password for the test account.
+7. Windows Security Event ID `4624` was reviewed during successful-authentication analysis.
+8. Splunk was used to correlate:
+   - Source IP
+   - Target host
+   - Targeted account
+   - Event timeline
+   - Failed and successful authentication activity
+9. The observed behavior was mapped to MITRE ATT&CK.
+10. The affected account password was reset.
+11. Account lockout controls were configured in Active Directory.
+12. RDP access was restricted through Group Policy.
+13. A standard Remote Desktop client was used to verify that unauthorized interactive access was denied.
+14. Splunk remained active throughout containment and remediation.
+
+---
+
+# SOC Investigation Workflow
+```
+Kali Linux Reconnaissance
+          ↓
+Sysmon and Windows Telemetry
+          ↓
+Splunk Enterprise Ingestion
+          ↓
+Repeated Event ID 4625 Failures
+          ↓
+Successful Authentication Review
+          ↓
+Source IP, Host, Account, and Timeline Correlation
+          ↓
+MITRE ATT&CK Mapping
+          ↓
+Identity Containment
+          ↓
+RDP Restriction Through Group Policy
+          ↓
+Account Lockout Hardening
+          ↓
+Credential Reset
+          ↓
+Manual RDP Validation
+          ↓
+Incident Response Documentation
+
+
+```
+# Data Sources
+The following telemetry sources were used during the project:
+
+- Windows Security event logs
+- Windows System event logs
+- Sysmon Operational logs
+- Splunk Universal Forwarder
+- Active Directory authentication events
+- Group Policy results
+- Kali Linux command-line output
+- Hydra authentication testing
+- Splunk dashboards and searches
+- Remote Desktop client validation
+- Active Directory Users and Computers
+- Group Policy Management Console
+
+  ---
+
+ # Splunk Dashboard Capabilities
+
+## The centralized SOC dashboard includes:
+
+- Time-range filtering
+- Host filtering
+- Event-type filtering
+- Security event timeline
+- Reconnaissance activity timeline
+- Failed logons over time
+- Top failed-login usernames
+- Failed logons by host
+- Top source IPs
+- Top destination ports
+- Failure-reason analysis
+- Recent high-value events
+- Successful login after failed attempts
+- MITRE ATT&CK validation
+- Reporting-host visibility
+- Raw event review for analyst validation
+
+---
+
+# Detection Logic
+## Failed Logon Detection
+
+index=* EventCode=4625
+| eval User=coalesce(Account_Name, TargetUserName, user)
+| eval Source_IP=coalesce(Source_Network_Address, SourceIp, src_ip)
+| table _time host ComputerName User Source_IP Failure_Reason
+| sort - _time
+
+This search identifies failed Windows authentication attempts and displays the affected account, source address, endpoint, failure reason, and event time.
+
+--- 
+
+# Failed Logons Over Time
+
+index=* EventCode=4625
+| timechart span=5m count as Failed_Logins
+
+This panel highlights spikes in authentication failures during the brute-force simulation.
+
+---
+
+# Top Targeted Accounts
+
+index=* EventCode=4625
+| eval User=coalesce(Account_Name, TargetUserName, user)
+| stats count by User
+| sort - count
+
+This panel identifies the accounts receiving the highest number of failed logon attempts.
+
+---
+
+# Failed Logons by Host
+
+index=* EventCode=4625
+| stats count by ComputerName
+| sort - count
+
+This panel identifies the systems receiving the most authentication failures
+
+---
+
+# Reconnaissance Activity
+
+index=endpoint sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=3
+| eval Source_IP=coalesce(SourceIp, src_ip)
+| eval Destination_IP=coalesce(DestinationIp, dest_ip)
+| eval Destination_Port=coalesce(DestinationPort, dest_port)
+| stats count by Source_IP Destination_IP Destination_Port host
+| sort - count
+
+This search analyzes Sysmon network-connection telemetry and identifies source addresses, destination addresses, ports, and event volume.
+
+---
+
+# Top Source IPs
+
+index=endpoint sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=3
+| stats count by SourceIp
+| sort - count
+
+The Kali Linux system at 10.30.30.6 appeared as the main source of the simulated suspicious network activity
+
+---
+
+# Top Destination Ports
+
+index=endpoint sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=3
+| stats count by DestinationPort
+| sort - count
+
+This panel identifies the destination services receiving the most connection attempts.
+
+---
+
+# Successful Authentication Review
+
+index=* (EventCode=4624 OR EventCode=4625)
+| eval User=coalesce(Account_Name, TargetUserName, user)
+| eval Source_IP=coalesce(Source_Network_Address, SourceIp, src_ip)
+| stats
+    count(eval(EventCode=4625)) as Failed_Logons
+    count(eval(EventCode=4624)) as Successful_Logons
+    values(EventCode) as EventCodes
+    earliest(_time) as First_Seen
+    latest(_time) as Last_Seen
+    by User ComputerName Source_IP
+| where Failed_Logons > 0 AND Successful_Logons > 0
+| eval Verdict="Requires Analyst Validation"
+| convert ctime(First_Seen) ctime(Last_Seen)
+| sort - Failed_Logons
+
+This search identifies accounts that generated both failed and successful authentication events
+
+The search does not automatically prove compromise. The analyst must validate:
+
+- Logon type
+- Source address
+- Account name
+- Target endpoint
+- Time relationship
+- Whether an interactive session was established
+- Whether the activity was authorize
+
+---
+
+# Authentication vs. Authorization Finding
+
+A major technical finding from this project was the difference between authentication and authorization.
+
+Hydra reported that the password was valid. However, after the Remote Desktop Group Policy restriction was applied, Hydra also displayed a message indicating that the account was not active or authorized for Remote Desktop.
+
+This demonstrated two separate stages:
+
+1.  Authentication
+- Windows evaluated whether the username and password were correct.
+- Hydra was able to identify a valid credential.
+2.  Authorization
+- Windows evaluated whether the account had permission to start an interactive RDP session.
+- Group Policy denied the session.
+
+A standard Remote Desktop client confirmed the final result:
+
+The connection was denied because the user account is not authorized for remote login.
+
+Therefore, Hydra reporting a valid password was not treated as proof that a usable Windows desktop session had been established
+
+---
