@@ -77,14 +77,9 @@ The main objectives of this project were to:
 | Component | Purpose |
 |---|---|
 | Kali Linux | Authorized attack-simulation host |
-| Windows 11 `Target-PC` | Domain-joined endpoint and RDP target |
-| Windows Server `ADDC01` | Active Directory Domain Services, DNS, and Group Policy |
-| Splunk Enterprise | SIEM, dashboarding, searching, correlation, and investigation |
-| Splunk Universal Forwarder | Forwarded Windows logs into Splunk |
-| Sysmon | Provided endpoint network and process telemetry |
-| MikroTik CHR | Routing, VLAN segmentation, and optional network containment |
-| Cisco Catalyst switch | VLAN segmentation between lab systems |
-| VirtualBox | Virtualization platform hosting the lab systems |
+| Windows 11 Target-PC | Domain-joined endpoint and RDP target |
+| Windows Server ADDC01 | Active Directory, DNS, and Group Policy |
+| Splunk Enterprise | SIEM, searching, dashboards, and investigation |
 
 ---
 
