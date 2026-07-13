@@ -1,0 +1,185 @@
+# Investigation Evidence
+
+The following screenshots document the complete SOC workflow:
+
+**Detection → Triage → Containment → Remediation → Validation**
+
+---
+
+## 1. Failed RDP Logon Events
+
+
+
+**Caption:**  
+Splunk identified repeated Windows Security Event ID `4625` events on `Target-PC`, confirming a high volume of failed authentication attempts against the targeted domain account.
+
+**Why this matters:**  
+This provided the primary detection evidence for the simulated RDP brute-force activity.
+
+---
+
+## 2. MITRE ATT&CK Validation
+
+![MITRE ATT&CK Validation](screenshots/02-mitre-attack-validation.png)
+
+**Caption:**  
+The observed activity was mapped to MITRE ATT&CK techniques `T1046 – Network Service Discovery`, `T1110 – Brute Force`, and `T1078 – Valid Accounts`.
+
+**Why this matters:**  
+MITRE ATT&CK mapping translated the raw event telemetry into recognizable adversary behavior.
+
+---
+
+## 3. Reconnaissance Events
+
+![Reconnaissance Events](screenshots/03-recon-events.png)
+
+**Caption:**  
+Splunk displayed network-related events reviewed during the reconnaissance phase of the investigation.
+
+**Why this matters:**  
+These events were used to examine activity occurring before the authentication attack.
+
+> **Validation note:** Confirm that this panel uses the correct Sysmon Operational sourcetype before labeling it as Sysmon Event ID `3`.
+
+---
+
+## 4. Reconnaissance and Failed-Logon Timeline
+
+![Reconnaissance and Failed Logon Timeline](screenshots/04-recon-and-failed-logon-timeline.png)
+
+**Caption:**  
+The Splunk timelines showed reconnaissance-related activity followed by a significant increase in failed authentication attempts.
+
+**Why this matters:**  
+The time-based correlation supported the conclusion that the activity occurred as part of a coordinated attack sequence.
+
+---
+
+## 5. Security Event Timeline
+
+![Security Event Timeline](screenshots/05-security-event-timeline.png)
+
+**Caption:**  
+The centralized security timeline displayed spikes in Event ID `4625` and related network events during the attack window.
+
+**Why this matters:**  
+This allowed the investigation to focus on the exact timeframe associated with the simulated brute-force activity.
+
+---
+
+## 6. Top Source IP and Destination Port
+
+![Top Source IP and Destination Port](screenshots/06-top-source-ip-and-destination-port.png)
+
+**Caption:**  
+Splunk identified `10.30.30.6` as the primary source of suspicious network activity and summarized the most frequently targeted destination ports.
+
+**Why this matters:**  
+The source-IP and destination-port analysis helped identify the attacking Kali Linux system and the services being targeted.
+
+---
+
+# Containment Evidence
+
+## 7. Password Reset
+
+![Password Reset](screenshots/07-password-reset.png)
+
+**Caption:**  
+The affected account password was reset in Active Directory to invalidate the credential discovered during the simulated attack.
+
+**Why this matters:**  
+Resetting the credential was an immediate identity-containment action intended to prevent reuse of the compromised password.
+
+> Confirm that the screenshot shows the intended affected account before publishing it.
+
+---
+
+# Remediation Evidence
+
+## 8. Account Lockout Threshold
+
+![Account Lockout Threshold](screenshots/08-account-lockout-threshold.png)
+
+**Caption:**  
+The Active Directory account lockout threshold was configured to lock an account after five invalid logon attempts.
+
+**Why this matters:**  
+This control limits the number of password guesses an attacker can make before the account is temporarily locked.
+
+---
+
+## 9. Account Lockout Policy
+
+![Account Lockout Policy](screenshots/09-account-lockout-policy.png)
+
+**Caption:**  
+The account lockout policy was configured with a five-attempt threshold and a defined reset period.
+
+**Why this matters:**  
+The policy reduced exposure to repeated password-guessing attempts across the domain.
+
+---
+
+## 10. Account Lockout Duration
+
+![Account Lockout Duration](screenshots/10-account-lockout-duration.png)
+
+**Caption:**  
+The account lockout duration was configured to temporarily prevent further authentication attempts after the threshold was reached.
+
+**Why this matters:**  
+The temporary lockout provided an additional barrier against automated brute-force activity.
+
+> Your screenshots appear to show both 15-minute and 30-minute values. Use only the screenshot that matches your final deployed configuration.
+
+---
+
+## 11. Group Policy Update
+
+![Group Policy Update](screenshots/11-group-policy-update.png)
+
+**Caption:**  
+The updated security policy was applied successfully using `gpupdate /force`.
+
+**Why this matters:**  
+This confirmed that the target system received the latest Active Directory Group Policy configuration.
+
+---
+
+## 12. RDP Policy Configuration
+
+![RDP Policy Configuration](screenshots/12-rdp-policy-configuration.png)
+
+**Caption:**  
+The `Allow log on through Remote Desktop Services` policy was restricted to authorized administrators.
+
+**Why this matters:**  
+This removed standard-user authorization to establish interactive Remote Desktop sessions.
+
+---
+
+# Validation Evidence
+
+## 13. RDP Access Denied
+
+![RDP Access Denied](screenshots/13-rdp-access-denied.png)
+
+**Caption:**  
+A manual Remote Desktop test confirmed that the affected account was not authorized for remote login after the Group Policy remediation was applied.
+
+**Why this matters:**  
+This provided direct proof that the authorization control successfully prevented an interactive RDP session.
+
+---
+
+## 14. Windows Firewall RDP Rule
+
+![Windows Firewall RDP Rule](screenshots/14-windows-firewall-rdp-rule.png)
+
+**Caption:**  
+A Windows Defender Firewall rule was prepared for inbound TCP port `3389` to provide an additional network-level RDP containment control.
+
+**Why this matters:**  
+The firewall rule demonstrated defense in depth by restricting access at the network layer in addition to the identity and authorization controls.
