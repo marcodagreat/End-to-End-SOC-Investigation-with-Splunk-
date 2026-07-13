@@ -13,7 +13,8 @@ The following screenshots document the complete SOC workflow:
 
 ## 1. Failed RDP Logon Events
 
-![Failed RDP Logon Events](screenshots/01-failed-logon-events.png)
+<img width="1280" height="720" alt="Failed_logons" src="https://github.com/user-attachments/assets/8d61e12c-646a-4a23-800a-03dc52b787d7" />
+
 
 **Caption:**  
 Splunk identified repeated Windows Security Event ID `4625` events on `Target-PC`, confirming a high volume of failed authentication attempts against the targeted domain account.
@@ -25,7 +26,8 @@ This provided the primary detection evidence for the simulated RDP brute-force a
 
 ## 2. MITRE ATT&CK Validation
 
-![MITRE ATT&CK Validation](screenshots/02-mitre-attack-validation.png)
+<img width="1280" height="720" alt="Mitre att ck_validation" src="https://github.com/user-attachments/assets/293856f3-658b-4a80-a93a-8b07c22da687" />
+
 
 **Caption:**  
 The observed activity was mapped to MITRE ATT&CK techniques `T1046 – Network Service Discovery`, `T1110 – Brute Force`, and `T1078 – Valid Accounts`.
@@ -37,7 +39,8 @@ MITRE ATT&CK mapping translated the raw event telemetry into recognizable advers
 
 ## 3. Reconnaissance Events
 
-![Reconnaissance Events](screenshots/03-recon-events.png)
+<img width="1280" height="720" alt="Recon_events" src="https://github.com/user-attachments/assets/8afca273-983f-469d-bfd6-3495755d254c" />
+
 
 **Caption:**  
 Splunk displayed network-related events reviewed during the reconnaissance phase of the investigation.
@@ -51,7 +54,8 @@ These events were used to examine activity occurring before the authentication a
 
 ## 4. Reconnaissance and Failed-Logon Timeline
 
-![Reconnaissance and Failed Logon Timeline](screenshots/04-recon-and-failed-logon-timeline.png)
+<img width="1280" height="720" alt="Recontimeline_failed logins over_time" src="https://github.com/user-attachments/assets/f0c52518-8b40-4a88-a0d3-1da22678ebf7" />
+
 
 **Caption:**  
 The Splunk timelines showed reconnaissance-related activity followed by a significant increase in failed authentication attempts.
@@ -63,7 +67,8 @@ The time-based correlation supported the conclusion that the activity occurred a
 
 ## 5. Security Event Timeline
 
-![Security Event Timeline](screenshots/05-security-event-timeline.png)
+<img width="1280" height="720" alt="Timeframe" src="https://github.com/user-attachments/assets/682d252b-bb9f-4576-98d3-2c25f9856f5c" />
+
 
 **Caption:**  
 The centralized security timeline displayed spikes in Event ID `4625` and related network events during the attack window.
@@ -75,7 +80,8 @@ This allowed the investigation to focus on the exact timeframe associated with t
 
 ## 6. Top Source IP and Destination Port
 
-![Top Source IP and Destination Port](screenshots/06-top-source-ip-and-destination-port.png)
+<img width="1280" height="720" alt="top source ip and top dest port" src="https://github.com/user-attachments/assets/28da0c39-8fef-4f5a-9d15-7fc538e88e66" />
+
 
 **Caption:**  
 Splunk identified `10.30.30.6` as the primary source of suspicious network activity and summarized the most frequently targeted destination ports.
@@ -89,7 +95,8 @@ The source-IP and destination-port analysis helped identify the attacking Kali L
 
 ## 7. Password Reset
 
-![Password Reset](screenshots/07-password-reset.png)
+<img width="1280" height="720" alt="Containment_reset_password" src="https://github.com/user-attachments/assets/33e70ed0-4ceb-4ca8-a0f7-13cfd3fe2527" />
+
 
 **Caption:**  
 The affected account password was reset in Active Directory to invalidate the credential discovered during the simulated attack.
@@ -105,7 +112,7 @@ Resetting the credential was an immediate identity-containment action intended t
 
 ## 8. Account Lockout Threshold
 
-![Account Lockout Threshold](screenshots/08-account-lockout-threshold.png)
+<img width="1280" height="720" alt="Remediation_account_lockout_policy" src="https://github.com/user-attachments/assets/4615a8e0-42d1-4872-be0d-938fcfbfa71c" />
 
 **Caption:**  
 The Active Directory account lockout threshold was configured to lock an account after five invalid logon attempts.
@@ -117,7 +124,8 @@ This control limits the number of password guesses an attacker can make before t
 
 ## 9. Account Lockout Policy
 
-![Account Lockout Policy](screenshots/09-account-lockout-policy.png)
+<img width="1280" height="720" alt="Remediation_account lockout_threshold" src="https://github.com/user-attachments/assets/ca1f2bdd-2f44-4395-90e0-2ab98da24cbe" />
+
 
 **Caption:**  
 The account lockout policy was configured with a five-attempt threshold and a defined reset period.
@@ -129,7 +137,8 @@ The policy reduced exposure to repeated password-guessing attempts across the do
 
 ## 10. Account Lockout Duration
 
-![Account Lockout Duration](screenshots/10-account-lockout-duration.png)
+<img width="1280" height="720" alt="Remediation_lockout_duration" src="https://github.com/user-attachments/assets/717cb49c-885f-4f4c-ad88-95bbc97b9640" />
+
 
 **Caption:**  
 The account lockout duration was configured to temporarily prevent further authentication attempts after the threshold was reached.
@@ -143,7 +152,8 @@ The temporary lockout provided an additional barrier against automated brute-for
 
 ## 11. Group Policy Update
 
-![Group Policy Update](screenshots/11-group-policy-update.png)
+<img width="1280" height="720" alt="Remediation_force_group_policy update" src="https://github.com/user-attachments/assets/6284e3c2-0ed2-4be6-b71e-de60d9801794" />
+
 
 **Caption:**  
 The updated security policy was applied successfully using `gpupdate /force`.
@@ -155,7 +165,8 @@ This confirmed that the target system received the latest Active Directory Group
 
 ## 12. RDP Policy Configuration
 
-![RDP Policy Configuration](screenshots/12-rdp-policy-configuration.png)
+<img width="1280" height="720" alt="Remediation_RDP_policy_config" src="https://github.com/user-attachments/assets/ea517b42-d542-44b9-834f-46ef48e66a97" />
+
 
 **Caption:**  
 The `Allow log on through Remote Desktop Services` policy was restricted to authorized administrators.
@@ -169,7 +180,8 @@ This removed standard-user authorization to establish interactive Remote Desktop
 
 ## 13. RDP Access Denied
 
-![RDP Access Denied](screenshots/13-rdp-access-denied.png)
+<img width="1280" height="720" alt="Remediation_RDP verification" src="https://github.com/user-attachments/assets/4ec01151-2ef9-4071-9ac0-af9a088de66d" />
+
 
 **Caption:**  
 A manual Remote Desktop test confirmed that the affected account was not authorized for remote login after the Group Policy remediation was applied.
@@ -181,7 +193,8 @@ This provided direct proof that the authorization control successfully prevented
 
 ## 14. Windows Firewall RDP Rule
 
-![Windows Firewall RDP Rule](screenshots/14-windows-firewall-rdp-rule.png)
+<img width="1280" height="720" alt="VirtualBox_ADDserver _11_07_2026_13_12_37" src="https://github.com/user-attachments/assets/e3690903-b6a4-4beb-a33b-989e02b1c412" />
+
 
 **Caption:**  
 A Windows Defender Firewall rule was prepared for inbound TCP port `3389` to provide an additional network-level RDP containment control.
