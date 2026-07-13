@@ -38,6 +38,8 @@ The lab focused on detecting reconnaissance activity and a simulated RDP brute-f
 20. [Lessons Learned](#lessons-learned)
 21. [Future Enhancements](#future-enhancements)
 
+---
+
 ## Project Evidence and Documentation
 
 - [View Investigation Screenshots](Screenshots/README.md)
