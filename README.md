@@ -38,6 +38,12 @@ The lab focused on detecting reconnaissance activity and a simulated RDP brute-f
 20. [Lessons Learned](#lessons-learned)
 21. [Future Enhancements](#future-enhancements)
 
+## Project Evidence and Documentation
+
+- [View Investigation Screenshots](Screenshots/README.md)
+- [Read the Incident Response Report](docs/Incident-Response-report.md)
+- [Read the SOC Investigation Playbook](docs/soc-investigation-playbook.md)
+
 ---
 
 # Project Objectives
